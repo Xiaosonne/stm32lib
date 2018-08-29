@@ -18,7 +18,7 @@
 
 #define DISK_BLOB_SIZE 64 * 1024
 #define MAGIC_NUMBER 0x12345678
-
+#define DEFAULT_FILE_ID 0xFFFFFFFF
 typedef unsigned int disk_addr_t;
 typedef unsigned char disk_data_t;
 typedef void (*sys_write_imp)(unsigned char *buff, unsigned int start_write_addr, unsigned short write_bytes);
@@ -43,8 +43,8 @@ typedef struct _disk_info
     unsigned int large_blob_count;
     disk_addr_t large_blob_addr;
 
-    unsigned char extra[468];
-} disk_info; //512 bytes
+    unsigned char extra[24];
+} disk_info; //64 bytes
 
 typedef struct _disk_file
 {

@@ -20,10 +20,12 @@ int file_read(file *file, disk_data_t *data, int offset, int length);
 
 void init_disk_info(disk *disk)
 {
-    disk_info *info = (disk_info *)malloc(sizeof(disk_info));
-    sys_read((disk_data_t *)(info), disk->info.disk_addr, sizeof(disk_info));
-    if (info->magic_num == MAGIC_NUMBER)
+    disk_info info;
+    memset(&info, 0, sizeof(info));
+    sys_read((disk_data_t *)(&info), disk->info.disk_addr, sizeof(disk_info));
+    if (info.magic_num == MAGIC_NUMBER && disk->info.disk_addr == info.disk_addr)
     {
+        disk->info = info;
         return;
     }
     sys_write((disk_data_t *)(&disk->info), disk->info.disk_addr, sizeof(disk_info));
@@ -41,6 +43,7 @@ void init_disk_info(disk *disk)
 disk *create_disk_info(unsigned int start, unsigned short file_blob_count, unsigned short data_blob_count)
 {
     disk *dsk = (disk *)malloc(sizeof(disk));
+    printf("disk size %d", sizeof(disk));
     dsk->open = open;
     dsk->close = file_close;
     disk_info *info = &dsk->info;
@@ -49,6 +52,9 @@ disk *create_disk_info(unsigned int start, unsigned short file_blob_count, unsig
     info->file_count = 1016 + (file_blob_count - 1) * 1024;
     info->file_total_count = 0;
     info->file_addr = start + 512;
+    printf(" addr open addr %x\r\n", (int)(void *)dsk->open);
+    printf(" addr close addr %x\r\n", (int)(void *)dsk->close);
+    printf(" info->file_total_count %d\r\n", info->file_total_count);
     //1 sector  1024B    64 small   blob
     //1 sector  1024B    4  mid     blob
     //1 sector  1024B    1  large   blob
@@ -204,9 +210,9 @@ disk_addr_t get_unwrite_addr(file *file, file_blob_header *empty_blob_header, un
     while (blob < base_blob_count)
     {
         sys_read((disk_data_t *)empty_blob_header, addr0, sizeof(file_blob_header));
-        if (empty_blob_header->fileid == 0 || empty_blob_header->fileid == file->file_info.file_id && empty_blob_header->typeinfo.type_str.length < blobSize)
+        if (empty_blob_header->fileid == DEFAULT_FILE_ID || empty_blob_header->fileid == file->file_info.file_id && empty_blob_header->typeinfo.type_str.length < blobSize)
         {
-            if (empty_blob_header->fileid == 0)
+            if (empty_blob_header->fileid == DEFAULT_FILE_ID)
             {
                 empty_blob_header->typeinfo.type_str.type = base_blob_type;
             }
