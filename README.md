@@ -1,4 +1,5 @@
 # stm32lib
 # storage in flash
-# fuck
-# fuck 1
+git pull
+git commit -m <msg> -a
+git push origin master
